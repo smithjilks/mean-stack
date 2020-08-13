@@ -3,6 +3,7 @@ const multer = require("multer");
 
 const Post = require('../models/post'); ///note uppercase in post
 
+// multer configuration to handle file uploads to server
 const MIME_TYPE_MAP = {
   'image/png': 'png',
   'image/jpeg': 'jpg',
@@ -16,7 +17,7 @@ const storage = multer.diskStorage({
     if(isValid){
       error = null;
     }
-    cback(error, "backend/images");
+    cback(error, "backend/images"); // destination folder
   },
   filename: (req, file, cback)=>{
     const name = file.originalname.toLowerCase().split(' ').join('-');
@@ -31,16 +32,25 @@ const router = express.Router();
 
 
 router.post("", multer({storage: storage}).single("image") ,(req, res) => {
+  const url = req.protocol = "://" + req.get("host"); // server url
   const post = new Post({
     title: req.body.title,
-    content: req.body.content
+    content: req.body.content,
+    imagePath: url + "/images/" + file.filename
   });
 
   //save is a mongooose method
   post.save().then(createdPost =>{
     res.status(201).json({
       mesaage: "post added successfully",
-      postId : createdPost._id
+      post: {
+        ...createdPost, // spread opertaor to copy the contents of the created . Shorter than below
+        id: createdPost._id // overwrite the title
+        // title: createdPost.title,
+        // content: createdPost.content,
+        // imagePath: createdPost.imagePath
+
+      }
     });
   });
 });
