@@ -3,6 +3,7 @@ import {HttpClient} from '@angular/common/http'
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { map } from 'rxjs/operators'
+import { Router } from '@angular/router';
 
 
 @Injectable({
@@ -14,12 +15,11 @@ export class PostsService{
   private posts: Post[] = [];
   private postsUpdated = new Subject <Post[]>();
 
-  constructor(private http: HttpClient){}
+  constructor(private http: HttpClient, private router: Router){}
 
   getPosts(){
     this.http.get< {message: string, body: any }>('http://localhost:3000/api/posts')  //changed Post[] to 'any' inoder to map the data
     .pipe(map((postData) => {
-
       return postData.body.map( post =>{
         return {
           title: post.title,
@@ -50,6 +50,8 @@ export class PostsService{
       //done async when success
       this.posts.push(post);
       this.postsUpdated.next([...this.posts]);
+
+      this.router.navigate(["/"]);
     });
 
 
@@ -69,6 +71,7 @@ export class PostsService{
       updatedPosts[oldPostIndex] = post;
       this.posts = updatedPosts;
       this.postsUpdated.next([...this.posts])
+      this.router.navigate(["/"]);   //navigate user to messages
     })
   }
 

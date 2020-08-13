@@ -12,6 +12,7 @@ import { Subscription } from 'rxjs'
 export class PostListComponent implements OnInit, OnDestroy{
 
   posts: Post[] = [];
+  isLoading = false;
 
   //call on destroy to this subscription to prevent memory leak once the commponent is removed from UI
   private postsSub: Subscription;
@@ -21,9 +22,11 @@ export class PostListComponent implements OnInit, OnDestroy{
   }
 
   ngOnInit(){
+    this.isLoading = true;
     this.postsService.getPosts();
     this.postsSub = this.postsService.getPostUpdateListener()
     .subscribe( (posts: Post[] ) => {
+      this.isLoading = false;
       this.posts = posts
     });
   }
