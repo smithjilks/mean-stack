@@ -1,7 +1,7 @@
 //7p0EOoNMoZ4SL8wS
-
-const express = require("express");
-const bodyParser = require("body-parser");
+const express = require('express');
+const bodyParser = require('body-parser');
+const path = require("path");
 
 const mongoose = require('mongoose');
 
@@ -22,6 +22,9 @@ mongoose.connect("mongodb+srv://smith:P0azDgKsVzVUUbY5@cluster0.ptmmu.mongodb.ne
 //app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
+
+//granting access to the images folder
+app.use("/images", express.static(path.join("backend/images")));
 
 //set headers to disablle CORS error that is triggered bb default
 //CORS - Cross Origin Resource Error

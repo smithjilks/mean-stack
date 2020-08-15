@@ -13,25 +13,34 @@ import { Router } from '@angular/router';
 export class PostsService{
 
   private posts: Post[] = [];
-  private postsUpdated = new Subject <Post[]>();
+  private postsUpdated = new Subject <{posts: Post[], postCount: number}>();
 
   constructor(private http: HttpClient, private router: Router){}
 
-  getPosts(){
-    this.http.get< {message: string, body: any }>('http://localhost:3000/api/posts')  //changed Post[] to 'any' inoder to map the data
-    .pipe(map((postData) => {
-      return postData.body.map( post =>{
-        return {
-          title: post.title,
-          content: post.content,
-          id:post._id,
-          imagePath: post.imagePath
-        }
-      })
+  getPosts(postPerPage: number, currentPage: number){
+
+    const queryParams = `?pagesize=${postPerPage}&page=${currentPage}`;
+    this.http.get< {message: string, body: any, maxPosts: number }>('http://localhost:3000/api/posts' + queryParams)  //changed Post[] to 'any' inoder to map the data
+    .pipe(
+      map(
+        postData => {
+          return { posts: postData.body.map( post =>{
+            return {
+              title: post.title,
+              content: post.content,
+              id:post._id,
+              imagePath: post.imagePath
+            };
+          }),
+          maxPosts: postData.maxPosts
+        };
     }))
-    .subscribe((transformedPosts)=>{
-      this.posts = transformedPosts;
-      this.postsUpdated.next([...this.posts]);
+    .subscribe(transformedPostsData =>{
+      this.posts = transformedPostsData.posts;
+      this.postsUpdated.next({
+        posts: [...this.posts],
+        postCount: transformedPostsData.maxPosts
+      });
     });
   }
 
@@ -48,56 +57,50 @@ export class PostsService{
 
     this.http.post<{message : string, post: Post}>('http://localhost:3000/api/posts', postData)
     .subscribe((responseData) => {
-      const post: Post = {
-        id: responseData.post.id,
-        title: title,
-        content:content,
-        imagePath: responseData.post.imagePath
-      }
-
-      //done async when success
-      this.posts.push(post);
-      this.postsUpdated.next([...this.posts]);
-
       this.router.navigate(["/"]);
     });
 
 
   }
 
-  updatePost(id: string, title: string, content: string){
-    const post: Post = {
-      id: id,
-      title: title,
-      content: content,
-      imagePath: null
-    };
+  updatePost(id: string, title: string, content: string, image: File | string){
 
-    this.http.put('http://localhost:3000/api/posts/' + id, post)
+    let postData : FormData | Post;
+
+    if(typeof(image)=== 'object'){
+      postData = new FormData();
+      postData.append('id', id);
+      postData.append('title', title);
+      postData.append('content',content);
+      postData.append('image', image, title);
+
+    } else{
+
+      postData = {
+        id: id,
+        title: title,
+        content: content,
+        imagePath: image
+      }
+    }
+
+    this.http.put('http://localhost:3000/api/posts/' + id, postData)
     .subscribe( response => {
-      const updatedPosts = [...this.posts];
-      const oldPostIndex = updatedPosts.findIndex(p => p.id === post.id);
-      updatedPosts[oldPostIndex] = post;
-      this.posts = updatedPosts;
-      this.postsUpdated.next([...this.posts])
       this.router.navigate(["/"]);   //navigate user to messages
     })
   }
 
   getPost(id: string){
-    return this.http.get<{_id: string, title: string, content: string}>
+    return this.http.get<{_id: string, title: string, content: string, imagePath: string}>
     ('http://localhost:3000/api/posts/' + id);
 
   }
 
   deletePost(postId: string){
-    this.http.delete('http://localhost:3000/api/posts/' + postId)
-    .subscribe(() => {
+    return this.http.delete('http://localhost:3000/api/posts/' + postId);
 
-      const updatedPosts = this.posts.filter(post => post.id != postId); // updating the UI after deleting the post
-      this.posts = updatedPosts;
-      this.postsUpdated.next([...this.posts]);
-    });
+      //const updatedPosts = this.posts.filter(post => post.id != postId); // updating the UI after deleting the post
+
 
   }
 }

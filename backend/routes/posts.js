@@ -9,6 +9,7 @@ const MIME_TYPE_MAP = {
   'image/jpeg': 'jpg',
   'imagejpg': 'jpg'
 }
+
 const storage = multer.diskStorage({
   destination: (req, file, cback)=>{
     const isValid = MIME_TYPE_MAP[file.mimetype];
@@ -23,7 +24,7 @@ const storage = multer.diskStorage({
     const name = file.originalname.toLowerCase().split(' ').join('-');
     const ext = MIME_TYPE_MAP[file.mimetype];
 
-    cback(null, name + "-"+ Date.now() + "." + ext)
+    cback(null, name + "-" + Date.now() + "." + ext);
   }
 
   });
@@ -32,11 +33,11 @@ const router = express.Router();
 
 
 router.post("", multer({storage: storage}).single("image") ,(req, res) => {
-  const url = req.protocol = "://" + req.get("host"); // server url
+  const url = req.protocol + "://" + req.get("host"); // server url
   const post = new Post({
     title: req.body.title,
     content: req.body.content,
-    imagePath: url + "/images/" + file.filename
+    imagePath: url + "/images/" + req.file.filename
   });
 
   //save is a mongooose method
@@ -58,15 +59,31 @@ router.post("", multer({storage: storage}).single("image") ,(req, res) => {
 
 router.get("",(req, res, next) => {
 
-  // static mongoose method to ding the documents in collection posts
-  Post.find()
-  .then( documents => {
+  //pagination query
+  const pageSize = +req.query.pagesize;  //+ sign converts the text/string to numeric
+  const currentPage = +req.query.page;
+  const postQuery = Post.find();
+  let fetchedPosts;
 
+  if(pageSize && currentPage){
+    //There is a more efficient way to query large data sets than this. Check this out https://stackoverflow.com/questions/5539955/how-to-paginate-with-mongoose-in-node-js
+    postQuery
+    .skip( pageSize * (currentPage - 1))
+    .limit(pageSize);
+  }
+
+
+  // static mongoose method to getting the documents in collection posts
+  postQuery.then( documents => {
+    fetchedPosts = documents;
+    return Post.countDocuments();
+  })
+  .then(count =>{
     res.status(200).json({
       message: 'Succesfully sent from api',
-      body: documents
+      body: fetchedPosts,
+      maxPosts: count
     });
-
   });
 
 
@@ -87,11 +104,18 @@ router.get("/:id", (req, res, next) =>{
   });
 })
 
-router.put("/:id", (req, res, next) =>{
+router.put("/:id", multer({storage: storage}).single("image"), (req, res, next) =>{
+  let imagePath = req.body.imagePath;
+  if(req.file){
+    const url = req.protocol + "://" + req.get("host"); // server url
+    imagePath = url + "/images/" + req.file.filename;
+
+  }
   const post = new Post({
     _id: req.body.id,
     title: req.body.title,
-    content: req.body.content
+    content: req.body.content,
+    imagePath: imagePath
   });
 
   Post.updateOne({_id: req.params.id}, post).then(result => {
