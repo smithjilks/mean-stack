@@ -1,5 +1,7 @@
-const express = require('express');
+const express = require("express");
 const multer = require("multer");
+
+const checkAuth = require("../middleware/check-auth");
 
 const Post = require('../models/post'); ///note uppercase in post
 
@@ -32,7 +34,7 @@ const storage = multer.diskStorage({
 const router = express.Router();
 
 
-router.post("", multer({storage: storage}).single("image") ,(req, res) => {
+router.post("", checkAuth, multer({storage: storage}).single("image") ,(req, res) => {
   const url = req.protocol + "://" + req.get("host"); // server url
   const post = new Post({
     title: req.body.title,
@@ -104,7 +106,7 @@ router.get("/:id", (req, res, next) =>{
   });
 })
 
-router.put("/:id", multer({storage: storage}).single("image"), (req, res, next) =>{
+router.put("/:id", checkAuth, multer({storage: storage}).single("image"), (req, res, next) =>{
   let imagePath = req.body.imagePath;
   if(req.file){
     const url = req.protocol + "://" + req.get("host"); // server url
@@ -124,7 +126,7 @@ router.put("/:id", multer({storage: storage}).single("image"), (req, res, next) 
 })
 
 //the colon shows dynamic path
-router.delete("/:id", (req, res, next) => {
+router.delete("/:id", checkAuth, (req, res, next) => {
 
   Post.deleteOne({ _id: req.params.id}).then(result =>{
     console.log(result);
