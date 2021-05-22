@@ -25,7 +25,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 
 //granting access to the images folder
-app.use("/images", express.static(path.join("backend/images")));
+app.use("/images", express.static(path.join(__dirname, "images")));
+
+//Allow static access to the angular folder
+app.use("/", express.static(path.join(__dirname, "angular")));
 
 //set headers to disablle CORS error that is triggered bb default
 //CORS - Cross Origin Resource Error
@@ -50,6 +53,10 @@ app.use((req, res, next) => {
 
 app.use("/api/posts", postRoutes);
 app.use("/api/user", userRoutes);
+
+app.use((req, res, next) => {
+  res.sendFile(path.join(__dirname, "angular", "index.html"));
+})
 
 
 module.exports = app;
