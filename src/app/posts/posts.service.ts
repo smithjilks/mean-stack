@@ -4,7 +4,9 @@ import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { map } from 'rxjs/operators'
 import { Router } from '@angular/router';
+import { environment } from 'src/environments/environment';
 
+const BACKEND_URL = environment.apiUrl + "/posts/"
 
 @Injectable({
   providedIn: 'root'
@@ -20,7 +22,7 @@ export class PostsService{
   getPosts(postPerPage: number, currentPage: number){
 
     const queryParams = `?pagesize=${postPerPage}&page=${currentPage}`;
-    this.http.get< {message: string, body: any, maxPosts: number }>('http://localhost:3000/api/posts' + queryParams)  //changed Post[] to 'any' inoder to map the data
+    this.http.get< {message: string, body: any, maxPosts: number }>(BACKEND_URL + queryParams)  //changed Post[] to 'any' inoder to map the data
     .pipe(
       map(
         postData => {
@@ -56,7 +58,7 @@ export class PostsService{
     postData.append("content", content);
     postData.append("image", image, title);
 
-    this.http.post<{message : string, post: Post}>('http://localhost:3000/api/posts', postData)
+    this.http.post<{message : string, post: Post}>(BACKEND_URL, postData)
     .subscribe((responseData) => {
       this.router.navigate(["/"]);
     });
@@ -86,7 +88,7 @@ export class PostsService{
       }
     }
 
-    this.http.put('http://localhost:3000/api/posts/' + id, postData)
+    this.http.put(BACKEND_URL + id, postData)
     .subscribe( response => {
       this.router.navigate(["/"]);   //navigate user to messages
     })
@@ -100,12 +102,12 @@ export class PostsService{
       imagePath: string,
       creator: string
     }>
-    ('http://localhost:3000/api/posts/' + id);
+    (BACKEND_URL + id);
 
   }
 
   deletePost(postId: string){
-    return this.http.delete('http://localhost:3000/api/posts/' + postId);
+    return this.http.delete(BACKEND_URL + postId);
 
       //const updatedPosts = this.posts.filter(post => post.id != postId); // updating the UI after deleting the post
 
