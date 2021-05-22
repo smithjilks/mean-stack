@@ -1,11 +1,11 @@
 import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
 import {HttpClientModule, HTTP_INTERCEPTORS} from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AngularMaterialModule } from './angular-material.module'
 import { PostsModule } from './posts/posts.module'
-import { AuthModule } from './auth/auth.module'
 
 
 import { AppComponent } from './app.component';
@@ -25,11 +25,11 @@ import { ErrorInterceptor } from './error-interceptor';
   ],
   imports: [
     BrowserModule,
+    BrowserAnimationsModule,
     AppRoutingModule,
     HttpClientModule,
     AngularMaterialModule,
-    PostsModule,
-    AuthModule
+    PostsModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true},
