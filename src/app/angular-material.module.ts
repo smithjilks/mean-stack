@@ -1,6 +1,6 @@
 import { NgModule } from "@angular/core";
 
-import { ReactiveFormsModule, FormsModule } from '@angular/forms'
+import { FormsModule } from '@angular/forms'
 import { MatInputModule } from '@angular/material/input';
 import { MatCardModule } from '@angular/material/card';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -13,7 +13,6 @@ import { MatDialogModule } from '@angular/material/dialog'
 
 @NgModule({
   exports:[
-    ReactiveFormsModule,
     BrowserAnimationsModule,
     MatInputModule,
     MatCardModule,
