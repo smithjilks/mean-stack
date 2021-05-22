@@ -55,7 +55,7 @@ exports.createUser = (req, res, next) =>{
     //npm install --save jsonwebtoken for creating the token
     const token = jwt.sign(
       {email: fetchedUser.email, userId: fetchedUser._id},
-      'secret_this_should_be_longer',
+      process.env.JWT_KEY,
       {expiresIn: "1h"});
       res.status(200).json
       ({token: token,
